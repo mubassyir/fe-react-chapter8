@@ -74,7 +74,7 @@ class UserPage extends Component {
     // Create User
     createUser=()=>{
         UserService.createUser(this.state.user).then((result)=>{
-            console.log(result);
+            console.log(`create user :${result}`);
             this.getAllUser();
         }).catch((e)=>{
             console.log(`error on create user : ${e}`)
@@ -86,7 +86,7 @@ class UserPage extends Component {
     searchByEmail=()=>{
         UserService.searchByEmail(this.state.search).then((result)=>{
             this.setState({getUser:result.data});
-            console.log(result);
+            console.log(`seach by email : ${result}`);
         }).catch((e)=>{
             console.log(`error on search bu email ${e}`)
         })
