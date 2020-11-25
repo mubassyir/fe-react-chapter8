@@ -1,10 +1,8 @@
 import React from "react";
 import {Button,Form,FormControl,Card } from 'react-bootstrap';
-import imgUpdate from "../assets/imgUpdate.jpeg"
-import imgDelete from "../assets/imgDelete.jpeg"
 import "./body.css"
 
-export const Body = ({users,onChangeForm,searchByEmail,setStateId,setStateConfirm})=>{
+export const Body = ({users,onChangeForm,searchByEmail,callModalsUpdate,callModalsDelete})=>{
 
     if (users.length === 0) return null
 
@@ -18,10 +16,10 @@ export const Body = ({users,onChangeForm,searchByEmail,setStateId,setStateConfir
                   <td>
                       <div className="row action-row">
                           <div>
-                            <button onClick={e => setStateId(user.id)}><img className="img" src={imgUpdate}></img></button>
+                            <Button className="btn-success" onClick={() => callModalsUpdate(user.id)}>Update</Button>
                           </div>
                           <div>
-                            <button onClick={e => setStateConfirm(user.id)}><img className="img" src={imgDelete}></img></button>
+                            <Button className="btn-danger" onClick={() => callModalsDelete(user.id)}>Delete</Button>
                           </div>
                       </div>
                   </td>

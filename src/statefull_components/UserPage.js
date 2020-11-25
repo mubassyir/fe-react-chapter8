@@ -3,7 +3,6 @@ import Header from "../stateless_components/header";
 import {Body} from "../stateless_components/body";
 import UserService from "../service/usersService.js";
 import {Modals} from "../stateless_components/modals";
-import {UpdateModals} from "../stateless_components/updateModals";
 import {Button } from 'react-bootstrap';
 import {ModalsConfirm} from "../stateless_components/modalsConfirm"
 
@@ -15,11 +14,11 @@ class UserPage extends Component {
         getUser:[],
         modals:false,
         modalsConfirm:false,
-        updateModals:false,
         id:0,
-        search:""
+        search:"",
+        actionModals:""
     }
-    // Main Methode
+    // Main Method
     componentDidMount() {
         this.getAllUser();
     }
@@ -34,85 +33,96 @@ class UserPage extends Component {
             this.setState({search:e.target.value})
         }
     }
-
-    handleModals =()=>{
-        let modalsState = this.state.modals;
-        this.setState({modals:!modalsState})
-    }
-
-    handleUpdateModals =()=>{
-        let updateModalsState = this.state.updateModals;
-        this.setState({updateModals:!updateModalsState});
-    }
-
-    handleModalsConfirm=()=>{
-        let confirmModalsState = this.state.modalsConfirm;
-        this.setState({modalsConfirm:!confirmModalsState});
-    }
-
-    setStateId= async (id)=>{
-        await this.setState({id:id})
-        this.handleUpdateModals();
-        console.log(`Update Id : ${this.state.id}`);
-    }
-
-    setStateConfirm=async(id)=>{
-        await this.setState({id:id});
-        console.log(`Delete Id : ${id}`);
-        this.handleModalsConfirm();
-    }
-
+    
     // Retrive all data
     getAllUser=()=>{
-        UserService.getAllUser().then((result)=>{
-            this.setState({getUser:result.data})
-        }).catch((e)=>{
-            console.log(`error on retrive all data : ${e}`)
-        })
+      UserService.getAllUser().then((result)=>{
+          this.setState({getUser:result.data});
+      }).catch((e)=>{
+          console.log(`error on retrive all data : ${e}`)
+      })
     }
 
-    // Create User
-    createUser=()=>{
-        UserService.createUser(this.state.user).then((result)=>{
-            console.log(`create user :${result}`);
-            this.getAllUser();
-        }).catch((e)=>{
-            console.log(`error on create user : ${e}`)
-        })
-        this.handleModals();
+    //Call modals for create
+    callModalsCreate=async()=>{
+        await this.setState({modals:true,actionModals:"create"});
+        console.log(`action :${this.state.actionModals}`);
+    }
+
+    //call modals for update
+    callModalsUpdate= async (id)=>{
+        await this.setState({id:id,modals:true,actionModals:"update"})
+        console.log(`Update Id : ${this.state.id}`);
+        console.log(`action :${this.state.actionModals}`);
+    }
+
+    //call modals for confirm delete
+    callModalsDelete=async(id)=>{
+        await this.setState({id:id,modalsConfirm:true,actionModals:"delete"});
+        console.log(`Delete Id : ${id}`);
+        console.log(`action :${this.state.actionModals}`);
+    }
+
+    // function for service to API
+    userService=async()=>{
+        console.log("calling service")
+        let action = await this.state.actionModals; 
+
+        switch(action){
+            case "create":{
+                UserService.createUser(this.state.user).then((result)=>{
+                    console.log(`create user :${result}`);
+                    this.getAllUser();
+                    this.setState({modals:false});
+                }).catch((e)=>{
+                    console.log(`error on create user : ${e}`);
+                });
+                break;
+            }
+            case "update":{
+                UserService.updateUser(this.state.id,this.state.user).then(()=>{
+                    this.getAllUser();
+                    this.setState({modals:false});
+                }).catch((e)=>{
+                   console.log(`error on update user : ${e}`);
+                })
+                   console.log(this.state.user);
+                   console.log(this.state.id);
+                   break
+            }
+            case "delete":{
+                UserService.deleteUser(this.state.id).then(()=>{
+                    this.getAllUser();
+                }).catch((e)=>{
+                    console.log('error when deleting user');
+                })
+                break;
+            }
+            case "search":{
+                UserService.searchByEmail(this.state.search).then((result)=>{
+                this.setState({getUser:result.data});
+            }).catch((e)=>{
+                console.log(`error on search bu email ${e}`)
+            })
+             break;
+            }
+            default :{
+                return null;
+            }
+        }
     }
 
     // Retrive data by search
-    searchByEmail=()=>{
-        UserService.searchByEmail(this.state.search).then((result)=>{
-            this.setState({getUser:result.data});
-            console.log(`seach by email : ${result}`);
-        }).catch((e)=>{
-            console.log(`error on search bu email ${e}`)
-        })
+    searchByEmail=async()=>{
+        await this.setState({actionModals:"search"});
+        this.userService();
     }  
 
-    //Update user
-    updateUser=()=>{
-        UserService.updateUser(this.state.id,this.state.user).then(()=>{
-            this.getAllUser();
-            this.handleUpdateModals();
-        }).catch((e)=>{
-            console.log(`error on update user : ${e}`)
-        })
-        console.log(this.state.user)
-        console.log(this.state.id)
-    }
-
     //Delete user
-    deleteUser=()=>{
-        console.log("user responding Yes")
-        UserService.deleteUser(this.state.id).then(()=>{
-            this.getAllUser();
-            this.setStateConfirm();
-        }).catch((e)=>{
-            console.log(`error when deleting user : ${e}`)
-        })
+    deleteUser=async()=>{
+        console.log("user responding Yes");
+        await this.setState({modalsConfirm:false});
+        this.userService()
     }
 
     render(){
@@ -122,38 +132,31 @@ class UserPage extends Component {
                 <Header></Header>
 
                 <div className="container">
-                    <Button variant="success" className="mb-3 mr-2" onClick={this.handleModals}>Manual Add</Button>
+                    <Button variant="success" className="mb-3 mr-2" onClick={()=>this.callModalsCreate()}>Manual Add</Button>
 
                     {/* Body */}
                     <Body
                     users={this.state.getUser}
                     onChangeForm={this.onChangeForm}
                     searchByEmail={this.searchByEmail}
-                    setStateId={this.setStateId}
-                    setStateConfirm={this.setStateConfirm}>
+                    callModalsUpdate={this.callModalsUpdate}
+                    callModalsDelete={this.callModalsDelete}>
                     </Body>
 
-                    {/* Modals manual add */}
+                    {/* Modals form*/}
                     <Modals 
-                    handleModals={this.handleModals}
+                    actionModals ={()=>this.state.actionModals}
+                    hideModals={()=>this.setState({modals:false})}
                     trigger = {this.state.modals}
                     onChangeForm={this.onChangeForm}
-                    createUser={this.createUser}>
+                    userService={()=>this.userService()}>
                     </Modals>
-
-                    {/* Modals update user */}
-                    <UpdateModals
-                    trigger = {this.state.updateModals}
-                    handleUpdateModals={this.handleUpdateModals}
-                    onChangeForm={this.onChangeForm}
-                    updateUser={this.updateUser}
-                    ></UpdateModals>
 
                     {/* Modals confirm delete */}
                     <ModalsConfirm
                     trigger={this.state.modalsConfirm}
-                    handleModalsConfirm={this.handleModalsConfirm}
-                    deleteUser={this.deleteUser}
+                    hideModalsConfirm={()=>this.setState({modalsConfirm:false})}
+                    deleteUser={()=>this.deleteUser()}
                     ></ModalsConfirm>
                 </div>
             </div>

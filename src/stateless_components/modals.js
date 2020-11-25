@@ -1,13 +1,19 @@
 import React from "react";
 import { Button,Modal } from 'react-bootstrap';
 
-export const Modals=({handleModals,trigger,onChangeForm,createUser})=>{
+export const Modals=({actionModals,hideModals,trigger,onChangeForm,userService})=>{
 
+  let title = ""
+  if(actionModals==="create"){
+    title = "Create User";
+  } else{
+    title = "Update User";
+  }
   return (
     <>
-      <Modal show={trigger} onHide={e => handleModals()}>
+      <Modal show={trigger} onHide={e => hideModals()}>
         <Modal.Header closeButton>
-          <Modal.Title>Create User</Modal.Title>
+          <Modal.Title>{title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>    
         <div className="container">
@@ -28,10 +34,10 @@ export const Modals=({handleModals,trigger,onChangeForm,createUser})=>{
         </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={e => handleModals()}>
+          <Button variant="secondary" onClick={() => hideModals()}>
             Close
           </Button>
-          <Button variant="primary" onClick= {(e) => createUser()}>Submit</Button>
+          <Button variant="primary" onClick= {() => userService()}>Submit</Button>
         </Modal.Footer>
       </Modal>
     </>
